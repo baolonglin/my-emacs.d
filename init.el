@@ -510,7 +510,7 @@ $ emacsclient -c
       lsp-java-save-action-organize-imports nil
 
       ;; Formatter profile
-      lsp-java-format-settings-url (concat "file://" p-java-format-file)
+      ;; lsp-java-format-settings-url (concat "file://" p-java-format-file)
       lsp-enable-on-type-formatting t
       lsp-enable-indentation t)
     )
