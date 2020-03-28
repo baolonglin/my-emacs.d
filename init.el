@@ -192,7 +192,14 @@
   )
 
 ;; Edit Utils
+(global-display-line-numbers-mode t)
+(column-number-mode t)
+(save-place-mode t)
+(which-function-mode t)
+(setq scroll-conservatively 100)
+
 (setq-default indent-tabs-mode nil)
+(setq-default tab-width 4)
 (electric-pair-mode)
 (electric-indent-mode)
 (setq-default truncate-lines nil)
@@ -237,6 +244,8 @@
     (when (eq major-mode 'compilation-mode)
       (ansi-color-apply-on-region compilation-filter-start (point-max))))
   (add-hook 'compilation-filter-hook 'sanityinc/colourise-compilation-buffer)
+
+  (setq compilation-scroll-output t)
   )
 
 ;; Whitespace
@@ -263,6 +272,11 @@
     :load-path ("site-lisp/magit-gerrit")
     )
   )
+
+;; Regex
+(use-package re-builder
+  :config
+  (setq reb-re-syntax 'string))
 
 ;; Markdown
 (use-package markdown-mode
@@ -291,6 +305,7 @@
    `((dot . t)
      (emacs-lisp . t)
      (gnuplot . t)
+     (C . t)
      (latex . t)
      (plantuml . t)
      (python . t)
@@ -322,21 +337,17 @@
   :config
   (require 'spaceline-config)
   (setq spaceline-buffer-encoding-abbrev-p nil)
-  (setq spaceline-line-column-p nil)
-  (setq spaceline-line-p nil)
+  (setq spaceline-line-column-p t)
+  ;;(setq spaceline-line-p nil)
   (setq powerline-default-separator 'arrow)
+  (spaceline-toggle-which-function-on)
   :init
- ;;(spaceline-helm-mode) ;; When using helm, mode line looks prettier.
- (spaceline-spacemacs-theme)
+  (spaceline-spacemacs-theme)
  )
 
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode)
   )
-
-(global-display-line-numbers-mode t)
-(column-number-mode t)
-(save-place-mode t)
 
 (use-package company
   :diminish
@@ -364,7 +375,6 @@
       :ensure t
       :config
       (add-to-list 'company-backends 'company-anaconda)
-      (add-to-list 'company-backends 'company-rtags)
       (use-package rx)
       )
     )
@@ -538,8 +548,21 @@ $ emacsclient -c
   )
 
 ;; C++
-(use-package clang-format)
+(use-package clang-format
+  :functions clang-format-buffer
+  :init
+  (defun clang-format-defun ()
+    (interactive)
+    (save-excursion
+      (mark-defun)
+      (clang-format-region (region-beginning) (region-end))
+      (deactivate-mark)))
+  :config
+  (setq-default clang-format-fallback-style "webkit")
+  )
+
 (use-package rtags
+  :if (executable-find "rdm")
   :bind (:map c-mode-map
 	      ("M-." . rtags-find-symbol-at-point)
 	      ("C-." . rtags-find-references-at-point)
@@ -561,25 +584,33 @@ $ emacsclient -c
   (setq rtags-completions-enabled t)
 
   (use-package flycheck-rtags
+    :functions flycheck-select-checker setup-flycheck-rtags
     :config
     (defun setup-flycheck-rtags ()
       (flycheck-select-checker 'rtags)
       ;; RTags creates more accurate overlays.
-      ;;(setq-local flycheck-highlighting-mode nil)
-      ;;(setq-local flycheck-check-syntax-automatically nil)
+      ;; (setq-local flycheck-highlighting-mode nil)
+      ;; (setq-local flycheck-check-syntax-automatically nil)
+      (rtags-set-periodic-reparse-timeout 2.0)
       )
     (add-hook 'c-mode-hook #'setup-flycheck-rtags)
     (add-hook 'c++-mode-hook #'setup-flycheck-rtags)
-
     )
   (use-package company-rtags
+    :init
+    (eval-after-load 'company
+      '(push 'company-rtags company-backends))
     :bind (:map c-mode-base-map
 		("C-<tab>" . company-complete))
     :config
-    ;;(push 'company-rtags company-backends)
     (setq company-global-modes '(not gud-mode))
     )
+  (use-package ivy-rtags
+    :init
+    (setq rtags-display-result-backend 'ivy)
+    )
   )
+
 (use-package vue-mode
   :mode "\\.vue\\'"
   :hook (vue-mode lsp)
@@ -628,6 +659,7 @@ $ emacsclient -c
   )
 
 (use-package xclip
+  :if (eq system-type 'gnu/linux)
   :config
   (xclip-mode t)
   )
@@ -647,6 +679,27 @@ $ emacsclient -c
             (require 'server)
             (unless (server-running-p)
               (server-start))))
+
+(use-package atomic-chrome
+  ;; dependency Atomic Chrome extension (in Chrome)
+  :init
+  ;;(setq atomic-chrome-default-major-mode 'markdown-mode)
+  (setq atomic-chrome-extension-type-list '(atomic-chrome))
+  (defun ac/compile-current-buffer ()
+    (interactive)
+    (let ((file-name (buffer-file-name)))
+      (when (not file-name)
+        (setq file-name "/tmp/ac-compile-current-buffer.cc")
+        )
+      (write-file file-name)
+      (compile (format "g++ -Wall %s" file-name))
+      (when (executable-find "rc")
+        (shell-command (format "rc -c g++ -Wall -c %s" file-name))
+        )
+      )
+    )
+  :config
+  (atomic-chrome-start-server))
 
 (when (file-exists-p custom-file)
   (load custom-file))
