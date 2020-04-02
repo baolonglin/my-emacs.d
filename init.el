@@ -197,7 +197,10 @@
 (save-place-mode t)
 (which-function-mode t)
 (setq scroll-conservatively 100)
-
+(setq make-backup-files nil)
+(setq create-lockfiles nil)
+(setq auto-save-file-name-transforms
+  `((".*" "~/.emacs-saves/" t)))
 (setq-default indent-tabs-mode nil)
 (setq-default tab-width 4)
 (electric-pair-mode)
@@ -351,6 +354,7 @@
 
 (use-package company
   :diminish
+  :init (global-company-mode)
   :bind
   (:map company-active-map
    ("C-n" . company-select-next)
@@ -369,8 +373,6 @@
           company-dabbrev-ignore-case t
           company-idle-delay 0
           )
-    (global-company-mode 1)
-
     (use-package company-anaconda
       :ensure t
       :config
@@ -581,7 +583,7 @@ $ emacsclient -c
   (rtags-enable-standard-keybindings c-mode-map)
   (setq rtags-autostart-diagnostics t)
   (rtags-diagnostics)
-  (setq rtags-completions-enabled t)
+  ;;(setq rtags-completions-enabled t)
 
   (use-package flycheck-rtags
     :functions flycheck-select-checker setup-flycheck-rtags
@@ -596,15 +598,15 @@ $ emacsclient -c
     (add-hook 'c-mode-hook #'setup-flycheck-rtags)
     (add-hook 'c++-mode-hook #'setup-flycheck-rtags)
     )
-  (use-package company-rtags
-    :init
-    (eval-after-load 'company
-      '(push 'company-rtags company-backends))
-    :bind (:map c-mode-base-map
-		("C-<tab>" . company-complete))
-    :config
-    (setq company-global-modes '(not gud-mode))
-    )
+  ;; (use-package company-rtags
+  ;;   :init
+  ;;   (eval-after-load 'company
+  ;;     '(push 'company-rtags company-backends))
+  ;;   :bind (:map c-mode-base-map
+  ;;   	("C-<tab>" . company-complete))
+  ;;   :config
+  ;;   (setq company-global-modes '(not gud-mode))
+  ;;   )
   (use-package ivy-rtags
     :init
     (setq rtags-display-result-backend 'ivy)
@@ -682,24 +684,43 @@ $ emacsclient -c
 
 (use-package atomic-chrome
   ;; dependency Atomic Chrome extension (in Chrome)
+  :functions ac/compile-current-buffer
   :init
   ;;(setq atomic-chrome-default-major-mode 'markdown-mode)
   (setq atomic-chrome-extension-type-list '(atomic-chrome))
   (defun ac/compile-current-buffer ()
     (interactive)
-    (let ((file-name (buffer-file-name)))
-      (when (not file-name)
-        (setq file-name "/tmp/ac-compile-current-buffer.cc")
+    (let ((file-name "ac-compile-current-buffer.cc")
+          (dir-name "~/Workspace/cpp/try/"))
+      (atomic-chrome-send-buffer-text)
+
+      (when (buffer-file-name)
+        (setq dir-name (file-name-directory (buffer-file-name)))
+        (setq file-name (file-name-nondirectory (buffer-file-name)))
         )
-      (write-file file-name)
-      (compile (format "g++ -Wall %s" file-name))
+      (unless (file-exists-p dir-name)
+        (make-directory dir-name t)
+        )
+      (write-file (concat dir-name file-name))
+
+      (unless (file-exists-p (concat dir-name ".git"))
+        (when (executable-find "git")
+          (shell-command (format "cd %s; git init .; git add %s; git commit -m 'add %s'" dir-name file-name file-name))
+          )
+        )
+
+      (compile (format "g++ -std=c++2a -Wall %s" file-name))
       (when (executable-find "rc")
-        (shell-command (format "rc -c g++ -Wall -c %s" file-name))
+        (shell-command (format "rc --project-root=%s -c g++ -std=c++2a -Wall -c %s"
+                               (expand-file-name dir-name)
+                               (expand-file-name (concat dir-name file-name))))
         )
       )
     )
   :config
-  (atomic-chrome-start-server))
+  (atomic-chrome-start-server)
+  (define-key atomic-chrome-edit-mode-map (kbd "C-x C-s") 'ac/compile-current-buffer)
+  )
 
 (when (file-exists-p custom-file)
   (load custom-file))
