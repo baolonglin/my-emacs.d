@@ -615,7 +615,11 @@ $ emacsclient -c
 
 (use-package vue-mode
   :mode "\\.vue\\'"
-  :hook (vue-mode lsp)
+  :config
+  (add-to-list 'mmm-save-local-variables '(syntax-ppss-table buffer))
+  ;;(add-to-list 'mmm-save-local-variables '(c-current-comment-prefix region))
+  (setq js-indent-level 2)
+  ;;(add-hook 'vue-mode-hook #'lsp)
   )
 
 (use-package fullframe
@@ -669,6 +673,24 @@ $ emacsclient -c
 (use-package dumb-jump
   :config (setq dumb-jump-selector 'ivy) ;; (setq dumb-jump-selector 'helm)
   )
+
+(use-package dockerfile-mode)
+(use-package go-mode)
+(use-package docker
+  :ensure t
+  :bind ("C-c d" . docker))
+
+(use-package robe
+  :hook (ruby-mode . robe-mode)
+  :init
+  (eval-after-load 'company
+    '(push 'company-robe company-backends))
+  )
+
+(use-package lsp-dart
+  :ensure t
+  :hook (dart-mode . lsp))
+
 
 (let ((local-file (expand-file-name "local.el" user-emacs-directory)))
   (when (file-exists-p local-file)
