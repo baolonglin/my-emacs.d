@@ -477,6 +477,16 @@
 ;; Programming
 (use-package dumb-jump)
 
+;; Whitespace
+(setq-default show-trailing-whitespace t)
+(use-package whitespace-cleanup-mode
+  :delight
+  :config
+  (global-whitespace-cleanup-mode)
+  (setq whitespace-style '(face empty tabs lines-tail trailing))
+  (setq whitespace-line-column 300)
+  )
+
 ;; Projectile
 (use-package projectile
   :config
@@ -633,5 +643,10 @@
               (server-start))
 	        (define-key special-event-map [sigusr1] 'signal-restart-server)
             ))
+
+;; C++
+(use-package cmake-mode
+  :mode "CMakeLists\\.txt\\'"
+  )
 
 (provide 'init)
