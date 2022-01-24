@@ -53,6 +53,15 @@
       (add-to-list 'default-frame-alist '(font . "courier-12"))
       ))
   )
+
+(when (eq system-type 'darwin)
+  (set-frame-font "Menlo 18")
+  (setq mac-option-key-is-meta nil
+        mac-command-key-is-meta t
+        mac-command-modifier 'meta
+        )
+  )
+
 (setq use-file-dialog nil)
 (setq use-dialog-box nil)
 (setq inhibit-startup-screen t)
@@ -582,6 +591,11 @@
   (flycheck-display-errors-delay .3)
   )
 
+;; C++
+(use-package cmake-mode
+  :mode "CMakeLists\\.txt\\'"
+  )
+
 ;; JAVA
 (use-package lsp-java
   :after (lsp-mode)
@@ -643,10 +657,5 @@
               (server-start))
 	        (define-key special-event-map [sigusr1] 'signal-restart-server)
             ))
-
-;; C++
-(use-package cmake-mode
-  :mode "CMakeLists\\.txt\\'"
-  )
 
 (provide 'init)
