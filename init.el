@@ -466,6 +466,10 @@
   ;; If using org-roam-protocol
   (require 'org-roam-protocol))
 
+(use-package org-download
+  :straight (org-download :type git :host github :repo "baolonglin/org-download")
+  )
+
 ;; Git
 (use-package diff-hl
   :config
