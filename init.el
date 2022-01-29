@@ -143,8 +143,13 @@
   :config
   (ctrlf-mode +1))
 
-(use-package prescient)
-(use-package selectrum-prescient)
+(use-package prescient
+  :config
+  (prescient-persist-mode +1))
+
+(use-package selectrum-prescient
+  :config
+  (selectrum-prescient-mode +1))
 
 (use-package orderless
   :ensure t
@@ -368,6 +373,7 @@
   (session-initialize)
   )
 (setq-default recentf-max-saved-items 1000)
+(savehist-mode)
 
 ;; Edit Utils
 (setq-default indent-tabs-mode nil)
