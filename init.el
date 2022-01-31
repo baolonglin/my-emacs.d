@@ -78,7 +78,7 @@
 
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
-(menu-bar-mode -1)
+(menu-bar-mode +1)
 
 (global-set-key (kbd "C-+") 'text-scale-increase)
 (global-set-key (kbd "C--") 'text-scale-decrease)
@@ -474,6 +474,13 @@
 
 (use-package org-download
   :straight (org-download :type git :host github :repo "baolonglin/org-download")
+  )
+
+(use-package org-remark
+  :straight (org-remark :type git :host github :repo "nobiot/org-remark")
+  :config
+  (require 'org-remark-global-tracking)
+  (org-remark-global-tracking-mode +1)
   )
 
 ;; Git
