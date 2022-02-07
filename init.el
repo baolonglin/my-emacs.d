@@ -62,6 +62,20 @@
         )
   )
 
+(cond
+ ((executable-find "hunspell")
+  (setq ispell-program-name "hunspell")
+  (setq ispell-dictionary "en_US")
+  (setq ispell-dictionary-alist
+        '(("en_US" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil ("-d" "en_US,en_GB") nil utf-8)))
+  (setq ispell-hunspell-dictionary-alist ispell-dictionary-alist)
+  )
+
+ ((executable-find "aspell")
+  (setq ispell-program-name "aspell")
+  ;; Please note ispell-extra-args contains ACTUAL parameters passed to aspell
+  (setq ispell-extra-args '("--sug-mode=ultra" "--lang=en_US"))))
+
 (setq use-file-dialog nil)
 (setq use-dialog-box nil)
 (setq inhibit-startup-screen t)
@@ -486,6 +500,9 @@
 (use-package org-download
   :straight (org-download :type git :host github :repo "baolonglin/org-download")
   )
+
+(use-package orgmode-mediawiki
+  :straight (orgmode-mediawiki :type git :host github :repo "tomalexander/orgmode-mediawiki"))
 
 (use-package org-remark
   :straight (org-remark :type git :host github :repo "nobiot/org-remark")
