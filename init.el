@@ -641,6 +641,13 @@
   :mode "CMakeLists\\.txt\\'"
   )
 
+;; Rust
+(use-package rust-mode
+  :after (lsp-mode)
+  :config
+  (add-hook 'rust-mode-hook 'lsp-deferred)
+  )
+
 ;; JAVA
 (use-package lsp-java
   :after (lsp-mode)
