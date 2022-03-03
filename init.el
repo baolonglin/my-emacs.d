@@ -501,8 +501,8 @@
   :straight (org-download :type git :host github :repo "baolonglin/org-download")
   )
 
-(use-package orgmode-mediawiki
-  :straight (orgmode-mediawiki :type git :host github :repo "tomalexander/orgmode-mediawiki"))
+(use-package ox-mediawiki
+  :straight (ox-mediawiki :type git :host github :repo "tomalexander/orgmode-mediawiki"))
 
 (use-package org-remark
   :straight (org-remark :type git :host github :repo "nobiot/org-remark")
@@ -701,6 +701,15 @@
 
 (use-package expand-region
   :bind ("C-=" . er/expand-region))
+
+(use-package protobuf-mode)
+
+(use-package edit-server
+  :config
+  ;; chrome: https://chrome.google.com/extensions/detail/ljobjlafonikaiipfkggjbhkghgicgoh
+  ;; firefox: https://addons.mozilla.org/en-US/firefox/addon/edit-with-emacs1/
+  (edit-server-start)
+  )
 
 (add-hook 'after-init-hook
           (lambda ()
