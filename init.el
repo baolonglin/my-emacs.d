@@ -517,6 +517,7 @@
   (global-diff-hl-mode)
   )
 (use-package git-timemachine)
+(setq project-switch-commands t)
 (use-package magit
   :bind (("C-x g" . magit-status))
   :config
@@ -675,6 +676,15 @@
         lsp-enable-indentation t)
   )
 
+;; Go
+(use-package go-mode
+  :hook ((go-mode . lsp-deferred))
+  )
+
+;; Erlang
+(use-package erlang
+  :hook ((erlang-mode . lsp-deferred)))
+
 ;; Elisp
 (use-package re-builder
   :config
@@ -703,6 +713,7 @@
   :bind ("C-=" . er/expand-region))
 
 (use-package protobuf-mode)
+(use-package dockerfile-mode)
 
 (use-package edit-server
   :config
