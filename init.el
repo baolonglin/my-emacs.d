@@ -517,9 +517,10 @@
   (global-diff-hl-mode)
   )
 (use-package git-timemachine)
-(setq project-switch-commands t)
 (use-package magit
   :bind (("C-x g" . magit-status))
+  :init (if (not (boundp 'project-switch-commands))
+            (setq project-switch-commands nil))
   :config
   (use-package magit-todos)
   )
@@ -714,6 +715,15 @@
 
 (use-package protobuf-mode)
 (use-package dockerfile-mode)
+
+(use-package yaml-mode)
+
+(use-package kubernetes
+  :ensure t
+  :commands (kubernetes-overview)
+  :config
+  (setq kubernetes-poll-frequency 3600
+        kubernetes-redraw-frequency 3600))
 
 (use-package edit-server
   :config
