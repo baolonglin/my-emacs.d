@@ -96,6 +96,9 @@
 
 (global-set-key (kbd "C-+") 'text-scale-increase)
 (global-set-key (kbd "C--") 'text-scale-decrease)
+
+(windmove-default-keybindings)
+
 (set-fringe-mode '(10 . 0))
 (when (boundp 'fringe-indicator-alist)
   (setq-default fringe-indicator-alist
@@ -132,12 +135,6 @@
   :hook (prog-mode . rainbow-delimiters-mode)
   )
 
-(use-package switch-window
-  :custom
-  (switch-window-shortcut-style 'alphabet)
-  (switch-window-timeout nil)
-  :bind ("C-x o" . switch-window)
-  )
 (use-package treemacs)
 (use-package winner
   :config
@@ -436,15 +433,13 @@
 (use-package delsel
   :defer t
   :init (delete-selection-mode))
-(use-package undo-tree
-  :delight
+
+(use-package vundo
+  :straight (vundo :type git :host github :repo "casouri/vundo")
   :config
-  ;; autosave the undo-tree history
-  ;;(setq undo-tree-history-directory-alist
-  ;;      `((".*" . ,temporary-file-directory)))
-  ;;(setq undo-tree-auto-save-history t)
-  (global-undo-tree-mode)
+  (setq vundo-compact-display t)
   )
+
 (use-package goto-last-change)
 
 (use-package plantuml-mode
