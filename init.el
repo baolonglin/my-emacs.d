@@ -725,6 +725,23 @@
   (setq kubernetes-poll-frequency 3600
         kubernetes-redraw-frequency 3600))
 
+(use-package vue-mode
+  :mode "\\.vue\\'"
+  :hook ((vue-mode . lsp-deferred)))
+
+(use-package typescript-mode
+  :mode (("\\.ts\\'" . typescript-mode))
+  :mode (("\\.tsx\\'" . typescript-mode)))
+
+(use-package yasnippet
+  :ensure t
+  :hook ((text-mode
+          prog-mode
+          conf-mode
+          snippet-mode) . yas-minor-mode-on)
+  :init
+  (setq yas-snippet-dir "~/.emacs.d/snippets"))
+
 (use-package edit-server
   :config
   ;; chrome: https://chrome.google.com/extensions/detail/ljobjlafonikaiipfkggjbhkghgicgoh
