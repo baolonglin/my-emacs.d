@@ -10,24 +10,23 @@
     (load-file private-file))
   )
 
-;; straight.el bootstrap
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 5))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
+(setq package-enable-at-startup nil)
+(require 'package)
+(package-initialize)
+(add-to-list 'package-archives '("melpa"        . "https://melpa.org/packages/"))
+(add-to-list 'package-archives '("gnu"          . "https://elpa.gnu.org/packages/"))
+(add-to-list 'package-archives '("nongnu"       . "https://elpa.nongnu.org/nongnu/"))
 
-(straight-use-package 'use-package)
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
+(eval-when-compile (require 'use-package))
 
-(use-package straight
-  :custom (straight-use-package-by-default t))
+(defvar use-package-always-ensure)
+(setq use-package-always-ensure t)
+(defvar use-package-always-pin)
+(setq use-package-always-pin "melpa")
+
 
 ;; GUI
 (if (or (eq system-type 'windows-nt) (eq system-type 'gnu/linux))
@@ -112,9 +111,10 @@
 		  (top-bottom . nil)
 		  (empty-line . nil)
 		  (unknown . nil))))
-(use-package doom-themes  :demand t
+
+(use-package modus-themes :demand t
   :init
-  (load-theme 'doom-zenburn t)
+  (load-theme 'modus-vivendi t)
   )
 (use-package solarized-theme :demand t)
 
@@ -145,10 +145,9 @@
   (push '("*Warning*") popwin:special-display-config)
   )
 
-(use-package selectrum
-  :config
-  (selectrum-mode +1)
-  )
+(use-package vertico
+  :init
+  (vertico-mode))
 
 (use-package ctrlf
   :config
@@ -157,10 +156,6 @@
 (use-package prescient
   :config
   (prescient-persist-mode +1))
-
-(use-package selectrum-prescient
-  :config
-  (selectrum-prescient-mode +1))
 
 (use-package orderless
   :ensure t
@@ -187,7 +182,7 @@
          ("C-c k" . consult-kmacro)
          ;; C-x bindings (ctl-x-map)
          ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
-         ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
+         ;; ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
          ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
          ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
          ("C-x r b" . consult-bookmark)            ;; orig. bookmark-jump
@@ -282,10 +277,10 @@
   ;; Optionally configure a function which returns the project root directory.
   ;; There are multiple reasonable alternatives to chose from.
   ;;;; 1. project.el (project-roots)
-  (setq consult-project-root-function
-        (lambda ()
-          (when-let (project (project-current))
-            (car (project-roots project)))))
+  ;; (setq consult-project-root-function
+  ;;       (lambda ()
+  ;;         (when-let (project (project-current))
+  ;;           (car (project-roots project)))))
   ;;;; 2. projectile.el (projectile-project-root)
   ;; (autoload 'projectile-project-root "projectile")
   ;; (setq consult-project-root-function #'projectile-project-root)
@@ -434,11 +429,29 @@
   :defer t
   :init (delete-selection-mode))
 
-(use-package vundo
-  :straight (vundo :type git :host github :repo "casouri/vundo")
+(use-package undo-tree
+  :pin "gnu"
+  :diminish
+  :bind (("C-x u" . undo-tree-visualize)
+         ("M-_" . undo-tree-redo)
+         ("M-n" . go-back-to-last-edit))
+  :custom
+  (undo-tree-visualizer-diff t)
+  (undo-tree-enable-undo-in-region t)
+  ;; (undo-tree-auto-save-history nil)
+  (undo-tree-history-directory-alist '((".*" . "~/.emacs.d/var/autosaves/\\1")))
+  ;; (setq undo-tree-visualizer-relative-timestamps nil)
+  ;; (setq undo-tree-visualizer-timestamps t)
   :config
-  (setq vundo-compact-display t)
-  )
+  (defun go-back-to-last-edit ()
+    "Jump back to the last change in the current buffer."
+    (interactive)
+    (ignore-errors
+      (let ((inhibit-message t))
+        (undo-tree-undo)
+        (undo-tree-redo))))
+  :init
+  (global-undo-tree-mode))
 
 (use-package goto-last-change)
 
@@ -492,15 +505,16 @@
   ;; If using org-roam-protocol
   (require 'org-roam-protocol))
 
+(use-package quelpa-use-package   :ensure t)
 (use-package org-download
-  :straight (org-download :type git :host github :repo "baolonglin/org-download")
+  :quelpa (org-download :fetcher github :repo "baolonglin/org-download")
   )
 
 (use-package ox-mediawiki
-  :straight (ox-mediawiki :type git :host github :repo "tomalexander/orgmode-mediawiki"))
+  :quelpa (ox-mediawiki :fetcher github :repo "tomalexander/orgmode-mediawiki"))
 
 (use-package org-remark
-  :straight (org-remark :type git :host github :repo "nobiot/org-remark")
+  :quelpa (org-remark :fetcher github :repo "nobiot/org-remark")
   :config
   (require 'org-remark-global-tracking)
   (org-remark-global-tracking-mode +1)
@@ -511,7 +525,7 @@
   :config
   (global-diff-hl-mode)
   )
-(use-package git-timemachine)
+
 (use-package magit
   :bind (("C-x g" . magit-status))
   :init (if (not (boundp 'project-switch-commands))
@@ -563,42 +577,6 @@
 	      ("M-p" . symbol-overlay-jump-prev))
   )
 
-;; LSP
-(use-package lsp-mode
-  :init (setq lsp-keymap-prefix "C-c l")
-  :commands (lsp lsp-deferred)
-  :config
-  (define-key lsp-mode-map (kbd "C-c l") lsp-command-map)
-  (setq lsp-completion-provider :capf)
-  (setq lsp-enable-symbol-highlighting nil)
-  (setq lsp-idle-delay 0.500)
-  (setq lsp-prefer-flymake nil)
-  (setq lsp-file-watch-threshold 10000)
-  (setq read-process-output-max (* 1024 1024))
-  (setq lsp-completion-enable-additional-text-edit nil)
-  (setq lsp-enable-file-watchers nil)
-  (setq lsp-vetur-format-default-formatter-css "none")
-  (setq lsp-vetur-format-default-formatter-html "none")
-  (setq lsp-vetur-format-default-formatter-js "none")
-  (setq lsp-vetur-validation-template nil)
-  (setq lsp-lens-enable nil)
-  )
-
-(use-package lsp-ui
-  :config
-  (setq lsp-ui-doc-enable nil
-        lsp-ui-sideline-enable nil
-        lsp-ui-flycheck-enable t)
-  )
-
-(use-package dap-mode
-  :after (lsp-mode)
-  :config
-  (dap-auto-configure-mode)
-  )
-(use-package company-lsp :commands company-lsp)
-(use-package lsp-treemacs :commands lsp-treemacs-errors-list)
-
 ;; Company
 (use-package company
   :delight
@@ -623,63 +601,19 @@
     (global-company-mode 1)
     )
 
-;; Flycheck
-(use-package flycheck
-  :defer 2
-  :delight
-  :init
-  (global-flycheck-mode)
-  :custom
-  (flycheck-display-errors-delay .3)
-  )
-
 ;; C++
 (use-package cmake-mode
   :mode "CMakeLists\\.txt\\'"
   )
 
 ;; Rust
-(use-package rust-mode
-  :after (lsp-mode)
-  :config
-  (add-hook 'rust-mode-hook 'lsp-deferred)
-  )
-
-;; JAVA
-(use-package lsp-java
-  :after (lsp-mode)
-  :config
-  (add-hook 'java-mode-hook 'lsp-deferred)
-  (setq lsp-java-vmargs
-        (list
-              "-Xmx4G"
-              "-Xms4G"
-              "-Xss2m"
-              "-XX:+UseG1GC"
-              "-XX:+UseLargePages"
-              )
-        lsp-file-watch-ignored
-        '(".idea" ".ensime_cache" ".eunit" "node_modules" ".git" ".hg" ".fslckout" "_FOSSIL_"
-          ".bzr" "_darcs" ".tox" ".svn" ".stack-work" "build")
-
-        lsp-java-import-order '["" "java" "javax" "#"]
-        ;; Don't organize imports on save
-        lsp-java-save-action-organize-imports nil
-
-        ;; Configure lsp-java-format-settings-url to have format style file
-        ;; Configure lsp-java-java-path to use different jdk
-        lsp-enable-on-type-formatting t
-        lsp-enable-indentation t)
-  )
+(use-package rust-mode)
 
 ;; Go
-(use-package go-mode
-  :hook ((go-mode . lsp-deferred))
-  )
+(use-package go-mode)
 
 ;; Erlang
-(use-package erlang
-  :hook ((erlang-mode . lsp-deferred)))
+(use-package erlang)
 
 ;; Elisp
 (use-package re-builder
@@ -722,7 +656,7 @@
 
 (use-package vue-mode
   :mode "\\.vue\\'"
-  :hook ((vue-mode . lsp-deferred)))
+  )
 
 (use-package typescript-mode
   :mode (("\\.ts\\'" . typescript-mode))
@@ -736,6 +670,45 @@
           snippet-mode) . yas-minor-mode-on)
   :init
   (setq yas-snippet-dir "~/.emacs.d/snippets"))
+
+(use-package clojure-mode)
+(use-package cider)
+(use-package inf-clojure)
+
+;; Python
+(use-package python
+  :mode ("\\.py\\'" . python-mode)
+  :config
+  (setq python-shell-interpreter "ipython"
+        python-shell-interpreter-args "-i --simple-prompt --InteractiveShell.display_page=True"
+        python-shell-completion-native-enable nil)
+  )
+(use-package pyvenv
+  :diminish
+  :config
+  (setq pyvenv-mode-line-indicator
+        '(pyvenv-virtual-env-name ("[venv:" pyvenv-virtual-env-name "] ")))
+  (pyvenv-mode +1))
+
+
+(use-package realgud)
+(use-package realgud-lldb)
+
+(use-package project-cmake
+  :quelpa (project-cmake :fetcher github :repo "baolonglin/project-cmake")
+  :config
+  (require 'eglot)
+  (project-cmake-scan-kits)
+  (project-cmake-eglot-integration)
+  )
+
+(use-package eglot
+  :ensure t
+  :hook
+  ((c-mode . eglot-ensure)
+   (c++-mode . eglot-ensure))
+  )
+
 
 (use-package edit-server
   :config
@@ -753,3 +726,4 @@
             ))
 
 (provide 'init)
+(put 'upcase-region 'disabled nil)
