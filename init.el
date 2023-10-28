@@ -61,6 +61,13 @@
         )
   )
 
+(use-package exec-path-from-shell
+  :config
+  (when (eq system-type 'darwin)
+    (exec-path-from-shell-initialize)
+    )
+  )
+
 (cond
  ((executable-find "hunspell")
   (setq ispell-program-name "hunspell")
