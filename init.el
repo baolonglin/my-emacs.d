@@ -716,6 +716,23 @@
    (c++-mode . eglot-ensure))
   )
 
+(use-package gptel
+  (setq-default gptel-model "gemma:7b"
+                gptel-backend (gptel-make-ollama "Ollama"
+                                :host "localhost:11434"
+                                :stream t
+                                :models '("gemma:7b")))
+  (gptel-make-openai "llama-cpp"
+    :stream t
+    :protocol "http"
+    :host "localhost:8080"
+    :models '("test"))
+  )
+
+(use-package zig-mode
+  :mode ("\\.zig\\'" . zig-mode)
+  )
+
 
 (use-package edit-server
   :config
